@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private Button loginButton;
     public  ArrayList<ClassNameData> URL = new ArrayList<ClassNameData>();
     private int task = 0;
-    private int pageSIZE = 0;
+    private int pageSIZE = 0,childSIZE = -1,isStart = -1;
      RecyclerAdapter mAdapter;
 
     RecyclerView mRecyclerView;
@@ -129,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
                     task = 3;
                 }
                 else if (task == 3){
+
                     //view.loadUrl("javascript:window.Android.setRecyclerviewClassData(document.getElementsByTagName('html')[0].innerHTML);");
                     view.loadUrl("javascript:window.Android.setRecyclerviewClassData($('.my-course-lists')[1].innerHTML)");
 
@@ -144,10 +145,38 @@ public class MainActivity extends AppCompatActivity {
                     while(pageSIZE == 0){
 
                     }
-                    for(int i = 3; i < pageSIZE; i++){
-                        String command = String.format("javascript:window.Android.getClassName($('.content')[%d].innerHTML);",i);
-                        view.loadUrl(command);
+                    if(pageSIZE == 3){
+                        Log.d("강의 에러","시청 가능 강의 없음!");
+                        pageSIZE = 0;
+                        return;
                     }
+                    view.loadUrl("javascript:window.Android.getStartSize(document.getElementsByClassName('content')[3].childElementCount);");
+                    while(isStart == -1){
+
+                    }
+                    if (isStart <= 2){
+                        Log.d("수행","안함");
+                        isStart = -1;
+                        return;
+                    }
+
+                    for(int i = 3; i < pageSIZE; i++){
+                        //String command = String.format("javascript:window.Android.getClassName($('.content')[%d].innerHTML);",i);
+                        String command = String.format("javascript:window.Android.getChild(document.getElementsByClassName('content')[%d].childNodes[2].childElementCount)",i);
+
+                        view.loadUrl(command);
+                        while (childSIZE == -1);
+                        for(int j = 0; j <childSIZE; j++){
+                            command = String.format("javascript:window.Android.getClassName(document.getElementsByClassName('content')[%d].childNodes[2].childNodes[%d].childNodes[0].childNodes[0].childNodes[1].childNodes[0].childNodes[0].textContent)",i,j);
+                            view.loadUrl(command);
+                        }
+                        childSIZE = -1;
+
+
+
+                    }
+                    pageSIZE = 0;
+                    isStart = -1;
                 }
 
 
@@ -168,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
                 clicked = true;
                 mwv.loadUrl(String.format("javascript:$('#id').val('%s')", userID.getText()));
                 mwv.loadUrl(String.format("javascript:$('#passw').val('%s')", userPW.getText()));
-              
+       
                 //입력한 아이디 비번
 
                 mwv.loadUrl("javascript:document.querySelector('#authParam > input.btn-type-skyblue').click()");
@@ -191,15 +220,13 @@ public class MainActivity extends AppCompatActivity {
 
             Pattern urlPattern = Pattern.compile("https://lms.sch.ac.kr/course/view.php\\?id=\\d+"); //정규식 패턴, https://lms.sch.ac.kr/course/view.php?id=숫자 가 패턴임
             Matcher urlMatcher = urlPattern.matcher(html); //받아온 html 소스에서 url 을 정규식으로 추출
-            Pattern classPattern = Pattern.compile("<h3>[ㄱ-ㅎ|ㅏ-ㅣ|가-힣|\\s\\d|\\(\\d+\\)|a-zA-Z]+");
+            Pattern classPattern = Pattern.compile("<h3>[ㄱ-ㅎ|ㅏ-ㅣ|가-힣|\\s\\d|\\(\\d+\\)|a-zA-Z|\\~]+");
             Matcher classMatcher = classPattern.matcher(html);
             //Log.d("클래스 명",classMatcher.group());
             //URL.add(new ClassNameData("!23","으악"));
             while(urlMatcher.find() && classMatcher.find()){
                 String url = urlMatcher.group();
                 String classname = classMatcher.group().replace("<h3>","");
-               // Log.d("클래스 명",classname);
-                Log.d("url",url);
                 URL.add(new ClassNameData(classname,url));
             }
         }
@@ -211,17 +238,41 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-
+    /*
         @JavascriptInterface
         public void getClassName(String data){
-            Pattern p = Pattern.compile("<span class=\"instancename\">[ㄱ-ㅎ|ㅏ-ㅣ|가-힣|\\s\\d]+");
+            Log.d("데이타",data);
+            Pattern p = Pattern.compile("<span class=\"instancename\">[\\.|ㄱ-ㅎ|ㅏ-ㅣ|가-힣|\\s|\\d|\\(|\\)|\\-|\\[|\\]|\\#|a-zA-Z]]+<span class=\"accesshide \">[ㄱ-ㅎ|ㅏ-ㅣ|가-힣|\\s|\\d|\\(|\\)]+");
             Matcher m = p.matcher(data);
+
             while(m.find()){
-                Log.d("클래스 목록 : " ,m.group());
+                String temp = m.group();
+                Log.d("클래스",temp);
+                if(temp.contains("영상")){
+                    Log.d("클래스 목록 : " ,temp);
+                }
+
             }
+
+        }*/
+        @JavascriptInterface
+        public void getChild(String data){
+            childSIZE = Integer.parseInt(data);
+        }
+
+        @JavascriptInterface
+        public  void getClassName(String data){
+            if(data.contains("영상") || data.contains("video")){
+                Log.d("강의목록 : ",data);
+            }
+
+        }
+
+        @JavascriptInterface
+        public void getStartSize(String data){
+            isStart = Integer.parseInt(data);
         }
     }
-
 
 }
 
