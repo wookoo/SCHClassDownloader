@@ -71,6 +71,14 @@ public class MainActivity extends AppCompatActivity {
         mAdapter = new RecyclerAdapter(URL);
         mRecyclerView.setAdapter(mAdapter);
 
+        mAdapter.setOnItemClickListener(new RecyclerAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position) {
+                Log.d("눌림",""+position);
+                mwv.loadUrl(URL.get(position).getClassURL());
+            }
+        });
+
 
 
 
@@ -121,16 +129,12 @@ public class MainActivity extends AppCompatActivity {
                     task = 3;
                 }
                 else if (task == 3){
-                    //view.loadUrl("javascript:window.Android.getHtml(document.getElementsByTagName('html')[0].innerHTML);");
-                    view.loadUrl("javascript:window.Android.getHtml($('.my-course-lists')[1].innerHTML)");
+                    //view.loadUrl("javascript:window.Android.setRecyclerviewClassData(document.getElementsByTagName('html')[0].innerHTML);");
+                    view.loadUrl("javascript:window.Android.setRecyclerviewClassData($('.my-course-lists')[1].innerHTML)");
 
                     //view.loadUrl("https://lms.sch.ac.kr/course/view.php?id=26094");
-                    while(URL.size()== 0){
-
-                    }
+                    while(URL.size()== 0){} ;
                     mAdapter.notifyDataSetChanged();
-
-
 
                     task = 4;
                 }
@@ -151,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
                 //로그인상태 확인하고. 로그인 안되있으면 로그인 시키기.
                 //로그인이 되었으면 lms 로 진입 후 현재 강의 출력
                 //현재 강의에서 강좌명 : 토큰명으로 저장
+                //강의 누르면 새로운 웹 화면에서 다운로드 할 리사이클러뷰 생성
 
             }
 
@@ -163,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
                 clicked = true;
                 mwv.loadUrl(String.format("javascript:$('#id').val('%s')", userID.getText()));
                 mwv.loadUrl(String.format("javascript:$('#passw').val('%s')", userPW.getText()));
-               
+              
                 //입력한 아이디 비번
 
                 mwv.loadUrl("javascript:document.querySelector('#authParam > input.btn-type-skyblue').click()");
@@ -181,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         @JavascriptInterface
-        public void getHtml(String html) { //위 자바스크립트가 호출되면 여기로 html이 반환됨
+        public void setRecyclerviewClassData(String html) { //위 자바스크립트가 호출되면 여기로 html이 반환됨
 
 
             Pattern urlPattern = Pattern.compile("https://lms.sch.ac.kr/course/view.php\\?id=\\d+"); //정규식 패턴, https://lms.sch.ac.kr/course/view.php?id=숫자 가 패턴임
